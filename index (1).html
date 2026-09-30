@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="color-scheme" content="light" />
+  <title>StudyMatch — Stop studying alone.</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --bg:#F7F7FB;
+      --card:#fff;
+      --ink:#171723;
+      --muted:#74748A;
+      --line:#E8E8F0;
+      --coral:#FF6B6B;
+      --violet:#7C5CFF;
+      --sky:#38BDF8;
+      --green:#18B77B;
+      --shadow:0 28px 70px rgba(60,48,99,.13),0 8px 24px rgba(45,45,70,.08);
+      --shadow-soft:0 16px 40px rgba(60,48,99,.10);
+      --radius:28px;
+    }
+    *{box-sizing:border-box}
+    html,body{margin:0;min-height:100%;background:var(--bg);color:var(--ink);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;overflow-x:hidden}
+    body{min-height:100vh}
+    button,input{font:inherit}
+    button{border:0}
+    a{color:inherit}
+    .app{min-height:100vh;position:relative;isolation:isolate;overflow:hidden}
+    .blob{position:fixed;z-index:-3;border-radius:999px;filter:blur(60px);opacity:.22;pointer-events:none;animation:drift 14s ease-in-out infinite alternate}
+    .blob.b1{width:430px;height:430px;background:var(--coral);left:-140px;top:-90px}
+    .blob.b2{width:500px;height:500px;background:var(--violet);right:-160px;top:22%;animation-delay:-4s}
+    .blob.b3{width:360px;height:360px;background:var(--sky);left:28%;bottom:-180px;animation-delay:-8s}
+    @keyframes drift{to{transform:translate3d(45px,30px,0) scale(1.08)}}
+    .topbar{height:88px;display:flex;align-items:center;justify-content:space-between;padding:0 clamp(24px,5vw,76px);position:relative;z-index:25}
+    .brand{display:flex;align-items:center;gap:10px;font-weight:900;font-size:26px;letter-spacing:-1px;user-select:none}
+    .brand svg{width:34px;height:34px;filter:drop-shadow(0 8px 16px rgba(124,92,255,.22))}
+    .brand-text{background:linear-gradient(110deg,var(--coral),var(--violet));-webkit-background-clip:text;background-clip:text;color:transparent}
+    .nav-actions{display:flex;align-items:center;gap:12px}
+    .text-btn,.ghost-btn,.primary-btn,.round-btn,.action-btn{cursor:pointer;transition:transform .17s ease,box-shadow .17s ease,opacity .17s ease,background .17s ease}
+    .text-btn:active,.ghost-btn:active,.primary-btn:active,.round-btn:active,.action-btn:active{transform:scale(.96)}
+    .text-btn{background:transparent;color:var(--muted);font-weight:800;padding:10px 8px}
+    .ghost-btn{background:rgba(255,255,255,.72);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.9);box-shadow:0 5px 20px rgba(44,44,70,.06);border-radius:999px;padding:12px 18px;font-weight:800;color:#49495D}
+    .primary-btn{background:linear-gradient(110deg,var(--coral),var(--violet));color:#fff;padding:17px 24px;border-radius:18px;font-weight:900;box-shadow:0 15px 32px rgba(124,92,255,.27);letter-spacing:-.2px}
+    .primary-btn:hover{transform:translateY(-2px);box-shadow:0 19px 38px rgba(124,92,255,.32)}
+    .primary-btn.big{font-size:18px;padding:19px 28px;border-radius:20px}
+    .screen{display:none;min-height:calc(100vh - 88px);position:relative}
+    .screen.active{display:block;animation:fadeIn .35s ease both}
+    @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+    /* Landing */
+    .landing{padding:clamp(50px,7vh,90px) clamp(24px,7vw,110px) 90px;display:grid;grid-template-columns:minmax(0,1.05fr) minmax(460px,.95fr);gap:40px;align-items:center;min-height:calc(100vh - 88px)}
+    .eyebrow{display:inline-flex;align-items:center;gap:9px;background:#fff;border:1px solid var(--line);box-shadow:var(--shadow-soft);padding:9px 13px;border-radius:999px;font-weight:800;font-size:13px;color:#5C5C70;text-transform:uppercase;letter-spacing:.12em;margin-bottom:20px}
+    .eyebrow i{width:9px;height:9px;border-radius:50%;background:linear-gradient(120deg,var(--coral),var(--violet));box-shadow:0 0 0 5px rgba(124,92,255,.08)}
+    h1{font-size:clamp(64px,6.5vw,104px);line-height:.92;letter-spacing:-.065em;margin:0;max-width:860px}
+    .gradient-text{background:linear-gradient(110deg,var(--coral) 5%,var(--violet) 70%);-webkit-background-clip:text;background-clip:text;color:transparent}
+    .hero-sub{font-size:clamp(23px,2vw,33px);line-height:1.2;font-weight:800;letter-spacing:-.035em;margin:26px 0 13px;color:#3E3E51}
+    .hero-copy{font-size:17px;line-height:1.65;color:var(--muted);max-width:620px;margin:0 0 34px}
+    .hero-micro{display:flex;gap:18px;align-items:center;margin-top:22px;color:#6E6E80;font-weight:700;font-size:14px}
+    .hero-micro span{display:flex;align-items:center;gap:7px}
+    .hero-micro b{color:var(--ink)}
+    .sample-stage{height:580px;position:relative;display:flex;align-items:center;justify-content:center}
+    .sample-card{position:absolute;width:365px;height:472px;border-radius:34px;background:rgba(255,255,255,.94);box-shadow:var(--shadow);border:1px solid rgba(255,255,255,.9);padding:28px;animation:bob 4.8s ease-in-out infinite;transform-origin:50% 80%}
+    .sample-card:nth-child(1){transform:translate(-80px,25px) rotate(-9deg);animation-name:bob1}
+    .sample-card:nth-child(2){transform:translate(76px,30px) rotate(9deg);animation-name:bob2;animation-delay:-1.4s}
+    .sample-card:nth-child(3){transform:translate(0,-10px) rotate(-1deg);animation-delay:-2.5s}
+    @keyframes bob{50%{transform:translate(0,-22px) rotate(1deg)}}
+    @keyframes bob1{50%{transform:translate(-80px,2px) rotate(-7deg)}}
+    @keyframes bob2{50%{transform:translate(76px,7px) rotate(7deg)}}
+    .sample-top{display:flex;justify-content:space-between;align-items:center}
+    .mini-name{font-weight:900;font-size:27px;letter-spacing:-.04em;margin:18px 0 5px}
+    .mini-meta{color:var(--muted);font-weight:700;font-size:14px}
+    .sample-bio{font-weight:800;font-size:18px;line-height:1.45;margin:23px 0;color:#3D3D50}
+    .mini-tags{display:flex;gap:7px;flex-wrap:wrap}.mini-tags span{padding:8px 10px;background:#F1EFFF;border-radius:999px;color:#6246E8;font-weight:800;font-size:12px}
+    .sample-foot{position:absolute;bottom:24px;left:28px;right:28px;display:flex;justify-content:space-between;align-items:center}
+    .sample-foot strong{font-size:13px;color:var(--muted)}
+
+    /* avatar */
+    .avatar{--a:#FF8F70;--b:#7C5CFF;width:88px;height:88px;border-radius:50%;background:linear-gradient(135deg,var(--a),var(--b));display:grid;place-items:center;color:white;font-weight:900;font-size:29px;letter-spacing:-1px;position:relative;box-shadow:0 16px 30px color-mix(in srgb,var(--b) 26%,transparent);flex:none;border:4px solid rgba(255,255,255,.8)}
+    .avatar.small{width:68px;height:68px;font-size:22px;border-width:3px}
+    .avatar.large{width:132px;height:132px;font-size:39px;border-width:5px}
+    .vibe{position:absolute;right:-3px;bottom:-4px;width:31px;height:31px;border-radius:50%;display:grid;place-items:center;background:#fff;font-size:17px;box-shadow:0 7px 18px rgba(35,35,50,.15)}
+    .avatar.large .vibe{width:41px;height:41px;font-size:22px}
+
+    /* onboarding */
+    .onboarding-wrap{padding:18px clamp(20px,5vw,78px) 80px;max-width:1560px;margin:0 auto}
+    .onboarding-head{display:flex;align-items:end;justify-content:space-between;gap:30px;margin:10px 0 26px}
+    .onboarding-head h2,.deck-title h2{font-size:clamp(42px,4vw,62px);line-height:1;letter-spacing:-.055em;margin:0 0 7px}
+    .onboarding-head p,.deck-title p{margin:0;color:var(--muted);font-weight:700;font-size:16px}
+    .demo-shortcut{background:#fff;border:1px solid var(--line);padding:12px 15px;border-radius:14px;font-weight:800;color:#54546B;box-shadow:0 8px 20px rgba(60,48,99,.06);cursor:pointer}
+    .demo-shortcut kbd{font:inherit;background:#F2F1F8;border:1px solid #E1DFEA;padding:2px 7px;border-radius:7px;margin-left:7px;color:#343445}
+    .profile-card{background:rgba(255,255,255,.89);backdrop-filter:blur(18px);border:1px solid rgba(255,255,255,.9);border-radius:32px;box-shadow:var(--shadow);padding:clamp(22px,2.6vw,38px);display:grid;grid-template-columns:minmax(0,1.1fr) minmax(420px,.9fr);gap:28px}
+    .section-block{padding:0 0 24px;margin-bottom:24px;border-bottom:1px solid var(--line)}
+    .section-block:last-child{border-bottom:0;margin-bottom:0;padding-bottom:0}
+    .section-label{font-size:13px;font-weight:900;letter-spacing:.1em;text-transform:uppercase;color:#7D7D91;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between}
+    .name-input{width:100%;border:1px solid var(--line);background:#FAFAFD;border-radius:16px;padding:15px 17px;font-size:18px;font-weight:800;outline:none;color:var(--ink);transition:border .2s,box-shadow .2s,background .2s}
+    .name-input:focus{border-color:#A998FF;background:white;box-shadow:0 0 0 5px rgba(124,92,255,.10)}
+    .chips{display:flex;flex-wrap:wrap;gap:9px}
+    .chip{padding:10px 13px;border-radius:999px;background:#F5F4F9;border:1px solid #E9E7EF;color:#555568;font-size:13px;font-weight:800;cursor:pointer;user-select:none;transition:.16s ease}
+    .chip:hover{transform:translateY(-1px);background:#fff}
+    .chip.selected{background:linear-gradient(120deg,rgba(255,107,107,.12),rgba(124,92,255,.12));border-color:#BDAFFF;color:#5A45D6;box-shadow:inset 0 0 0 1px rgba(124,92,255,.15)}
+    .weekly-grid{display:grid;grid-template-columns:84px repeat(5,1fr);gap:7px;align-items:stretch;user-select:none;touch-action:none}
+    .grid-head{font-size:12px;font-weight:900;color:#69697C;text-align:center;padding:7px 2px}
+    .grid-row-label{font-size:12px;font-weight:900;color:#69697C;display:flex;align-items:center}
+    .time-cell{height:37px;border-radius:10px;background:#F1F1F6;border:1px solid #E5E5ED;cursor:pointer;transition:transform .12s ease,background .15s ease,border .15s ease;position:relative}
+    .time-cell:hover{transform:scale(1.04)}
+    .time-cell.selected{background:linear-gradient(135deg,var(--sky),var(--violet));border-color:transparent;box-shadow:0 6px 14px rgba(124,92,255,.16)}
+    .choice-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+    .choice-tile{min-height:74px;border:1px solid var(--line);background:#FAFAFC;border-radius:16px;padding:14px;text-align:left;cursor:pointer;font-weight:900;color:#454558;display:flex;align-items:center;gap:10px;transition:.16s ease}
+    .choice-tile span:first-child{font-size:24px}
+    .choice-tile.selected{border-color:#B8A9FF;background:linear-gradient(120deg,rgba(255,107,107,.08),rgba(124,92,255,.10));color:#4C39C6;box-shadow:0 8px 20px rgba(124,92,255,.08)}
+    .goal-row{display:flex;gap:9px;flex-wrap:wrap}.goal-pill{padding:11px 13px;border-radius:13px;background:#FAFAFC;border:1px solid var(--line);font-weight:800;cursor:pointer;color:#555568}.goal-pill.selected{background:#171723;color:#fff;border-color:#171723}
+    .onboarding-actions{margin-top:24px;display:flex;justify-content:flex-end;align-items:center;gap:14px}
+    .validation{font-size:13px;color:#C45050;font-weight:800;min-height:18px;margin-right:auto}
+    .flash{animation:flash .55s ease}
+    @keyframes flash{0%{transform:scale(.98);opacity:.5}60%{transform:scale(1.01)}100%{transform:none;opacity:1}}
+
+    /* deck */
+    .deck-screen{padding:8px clamp(20px,4vw,64px) 42px}
+    .deck-layout{max-width:1500px;margin:0 auto;display:grid;grid-template-columns:minmax(0,1fr) 460px;gap:42px;align-items:start}
+    .deck-main{min-width:0}
+    .deck-topline{display:flex;justify-content:space-between;align-items:end;margin:4px 0 14px;gap:20px}
+    .deck-title h2{font-size:42px}.deck-title p{font-size:14px}
+    .progress-pill{font-size:13px;font-weight:900;color:#66667B;background:#fff;border:1px solid var(--line);padding:10px 13px;border-radius:999px;box-shadow:0 7px 18px rgba(60,48,99,.06);white-space:nowrap}
+    .deck-stage{height:570px;position:relative;display:grid;place-items:center;perspective:1300px;touch-action:none}
+    .study-card{width:min(100%,820px);height:520px;position:absolute;border-radius:32px;background:#fff;box-shadow:var(--shadow);border:1px solid rgba(255,255,255,.95);padding:34px;display:flex;flex-direction:column;transform-origin:50% 90%;transition:transform .26s cubic-bezier(.2,.9,.2,1),opacity .23s ease,filter .23s ease;will-change:transform;overflow:hidden}
+    .study-card::before{content:"";position:absolute;width:240px;height:240px;border-radius:50%;background:radial-gradient(circle,rgba(124,92,255,.12),transparent 67%);top:-120px;right:-70px;pointer-events:none}
+    .study-card[data-depth="1"]{transform:translateY(20px) scale(.965);z-index:2;filter:saturate(.88);opacity:.96}
+    .study-card[data-depth="2"]{transform:translateY(42px) scale(.925);z-index:1;filter:saturate(.78);opacity:.85}
+    .study-card[data-depth="0"]{z-index:5;cursor:grab}
+    .study-card.dragging{cursor:grabbing;transition:none}
+    .study-card:hover[data-depth="0"]{box-shadow:0 34px 85px rgba(60,48,99,.17),0 10px 24px rgba(45,45,70,.08)}
+    .card-head{display:flex;align-items:flex-start;gap:18px;padding-right:120px;position:relative}
+    .person{min-width:0}.person h3{font-size:33px;margin:4px 0 4px;letter-spacing:-.045em}.person .meta{font-size:14px;color:var(--muted);font-weight:800}.person .bio{font-size:18px;font-weight:800;color:#4A4A5D;margin:11px 0 0;line-height:1.4}
+    .score-ring{--score:0;position:absolute;right:0;top:-4px;width:102px;height:102px;border-radius:50%;background:conic-gradient(var(--violet) calc(var(--score)*1%),#ECEAF5 0);display:grid;place-items:center;box-shadow:0 12px 28px rgba(124,92,255,.13)}
+    .score-ring::after{content:"";width:79px;height:79px;border-radius:50%;background:#fff;position:absolute}
+    .score-copy{position:relative;z-index:2;text-align:center}.score-copy strong{font-size:25px;display:block;letter-spacing:-1.5px}.score-copy span{font-size:9px;font-weight:900;letter-spacing:.1em;color:#8A899B;text-transform:uppercase}
+    .divider{height:1px;background:var(--line);margin:24px 0 20px}
+    .shared-label{font-size:11px;font-weight:900;letter-spacing:.11em;text-transform:uppercase;color:#9291A0;margin-bottom:10px}
+    .course-row{display:flex;flex-wrap:wrap;gap:8px;min-height:38px}.course-tag{font-size:12px;font-weight:900;border-radius:999px;padding:9px 11px;background:#F5F4F9;color:#67667A;border:1px solid #ECEAF1}.course-tag.shared{background:linear-gradient(120deg,rgba(56,189,248,.13),rgba(124,92,255,.13));border-color:#C7C2FF;color:#5745CF}
+    .style-badge{display:inline-flex;align-items:center;gap:7px;margin-top:14px;padding:9px 11px;background:#FFF7EE;border-radius:12px;color:#8F5B22;font-weight:900;font-size:12px;width:max-content}
+    .why-row{margin-top:auto;border-radius:17px;background:#F8F7FD;border:1px solid #ECEAF6;padding:15px 16px;display:flex;gap:14px;align-items:center;color:#4D4D61;font-size:13px;font-weight:800;line-height:1.45}
+    .why-label{font-size:10px;text-transform:uppercase;letter-spacing:.09em;color:#9492A5;white-space:nowrap}
+    .why-text{flex:1}
+    .stamp{position:absolute;top:88px;padding:10px 16px;border:4px solid;border-radius:14px;font-size:28px;font-weight:1000;letter-spacing:.06em;opacity:0;transform:rotate(-11deg) scale(.75);transition:opacity .08s;z-index:15;pointer-events:none}
+    .study-stamp{right:34px;color:#1AAD79;border-color:#1AAD79;transform:rotate(10deg) scale(.75)}
+    .pass-stamp{left:34px;color:#EE6262;border-color:#EE6262}
+    .deck-controls{display:flex;justify-content:center;align-items:center;gap:18px;margin-top:7px}
+    .round-btn{width:68px;height:68px;border-radius:50%;display:grid;place-items:center;font-size:27px;background:#fff;box-shadow:0 13px 28px rgba(60,48,99,.12);border:1px solid #EEEAF2;color:#5E5D70}
+    .round-btn.pass{color:#EF6565}.round-btn.study{color:#fff;background:linear-gradient(135deg,var(--coral),var(--violet));width:78px;height:78px;font-size:32px;box-shadow:0 15px 34px rgba(124,92,255,.25)}
+    .key-hint{text-align:center;color:#9997A7;font-size:11px;font-weight:800;margin-top:8px}
+    .empty-deck{width:min(100%,820px);height:520px;border-radius:32px;border:1px dashed #DAD7E8;background:rgba(255,255,255,.75);box-shadow:var(--shadow-soft);display:none;place-items:center;text-align:center;padding:40px}.empty-deck.active{display:grid}.empty-deck .emoji{font-size:62px}.empty-deck h3{font-size:31px;letter-spacing:-.04em;margin:10px 0}.empty-deck p{color:var(--muted);font-weight:700;max-width:460px;line-height:1.5;margin:0 0 20px}
+
+    /* sessions aside */
+    .sessions-panel{background:rgba(255,255,255,.82);backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,.95);border-radius:28px;box-shadow:var(--shadow);padding:24px;min-height:570px;position:sticky;top:18px}
+    .panel-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}.panel-head h3{font-size:22px;letter-spacing:-.035em;margin:0}.panel-count{width:30px;height:30px;border-radius:50%;background:#171723;color:#fff;display:grid;place-items:center;font-size:12px;font-weight:900}
+    .session-list{display:flex;flex-direction:column;gap:12px}.session-empty{border:1px dashed #DCD9E8;background:#FAFAFD;border-radius:18px;padding:28px 18px;text-align:center;color:#89879A;font-weight:700;line-height:1.5}.session-empty .e{font-size:31px;display:block;margin-bottom:7px}
+    .session-card{border-radius:18px;border:1px solid #EAE8F2;background:#fff;padding:16px;box-shadow:0 10px 24px rgba(53,47,84,.07);animation:popIn .35s cubic-bezier(.2,1.2,.2,1) both}
+    @keyframes popIn{from{opacity:0;transform:translateY(12px) scale(.96)}to{opacity:1;transform:none}}
+    .session-top{display:flex;justify-content:space-between;gap:10px;align-items:start}.session-card h4{margin:0 0 4px;font-size:16px;letter-spacing:-.02em}.countdown{font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:.08em;background:#EDF9F4;color:#11855A;border-radius:999px;padding:6px 8px;white-space:nowrap}.session-meta{font-size:12px;color:#747389;font-weight:700;line-height:1.55;margin-top:9px}.session-person{display:flex;align-items:center;gap:8px;margin-top:12px;font-size:12px;font-weight:900;color:#57566A}.mini-dot{width:27px;height:27px;border-radius:50%;background:linear-gradient(135deg,var(--coral),var(--violet));color:white;display:grid;place-items:center;font-size:9px}.ics-btn{margin-top:12px;width:100%;border-radius:11px;padding:9px 10px;background:#F4F3F8;color:#5A586B;font-size:11px;font-weight:900;cursor:pointer}
+    .sessions-mobile-btn{display:none}
+
+    /* match overlay */
+    .match-overlay{position:fixed;inset:0;background:rgba(247,247,251,.92);backdrop-filter:blur(18px);z-index:100;display:none;place-items:center;padding:24px;overflow:auto}.match-overlay.active{display:grid;animation:fadeIn .22s ease both}
+    #confetti{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:103}
+    .match-modal{width:min(760px,94vw);background:#fff;border-radius:36px;box-shadow:0 35px 100px rgba(62,46,111,.22);border:1px solid rgba(255,255,255,.96);padding:34px 38px 30px;text-align:center;position:relative;z-index:102;overflow:hidden}
+    .match-modal::before{content:"";position:absolute;inset:-80px auto auto 50%;width:500px;height:240px;transform:translateX(-50%);background:radial-gradient(ellipse,rgba(124,92,255,.15),transparent 67%);pointer-events:none}
+    .match-kicker{font-size:11px;font-weight:1000;text-transform:uppercase;letter-spacing:.18em;color:#7A70B8;position:relative}
+    .avatar-collision{height:150px;display:flex;align-items:center;justify-content:center;position:relative;margin-top:2px}.match-avatar{position:absolute}.match-avatar.left{transform:translateX(-235px);animation:collideL .85s cubic-bezier(.2,1.25,.25,1) forwards}.match-avatar.right{transform:translateX(235px);animation:collideR .85s cubic-bezier(.2,1.25,.25,1) forwards}
+    @keyframes collideL{70%{transform:translateX(-52px)}84%{transform:translateX(-64px) rotate(-4deg)}100%{transform:translateX(-58px)}}
+    @keyframes collideR{70%{transform:translateX(52px)}84%{transform:translateX(64px) rotate(4deg)}100%{transform:translateX(58px)}}
+    .spark-burst{font-size:30px;opacity:0;animation:spark .45s .62s ease forwards}@keyframes spark{0%{opacity:0;transform:scale(.3)}60%{opacity:1;transform:scale(1.5)}100%{opacity:1;transform:scale(1)}}
+    .match-modal h2{font-size:45px;letter-spacing:-.055em;margin:3px 0 7px;position:relative}.match-sub{margin:0;color:var(--muted);font-weight:700}
+    .session-preview{margin:24px auto 20px;background:#F8F7FD;border:1px solid #EAE7F6;border-radius:20px;padding:17px;text-align:left;display:grid;grid-template-columns:1fr;gap:8px;max-width:610px}.session-preview div{font-weight:900;font-size:15px;color:#444357}.session-preview small{display:block;color:#858399;font-weight:700;font-size:11px;margin-top:2px}
+    .match-actions{display:flex;justify-content:center;gap:11px}.action-btn{padding:14px 20px;border-radius:15px;font-weight:900}.action-btn.secondary{background:#F1EFF7;color:#555367}.action-btn.book{background:linear-gradient(110deg,var(--coral),var(--violet));color:white;box-shadow:0 13px 26px rgba(124,92,255,.24)}
+    .booked-state{position:absolute;inset:0;display:none;place-items:center;background:white;z-index:3}.booked-state.active{display:grid;animation:fadeIn .25s ease}.success-check{width:98px;height:98px;border-radius:50%;background:linear-gradient(135deg,#27D59A,#11A972);display:grid;place-items:center;color:white;font-size:50px;margin:0 auto 13px;box-shadow:0 18px 36px rgba(17,169,114,.24);animation:successPulse .6s cubic-bezier(.2,1.5,.3,1)}
+    @keyframes successPulse{from{transform:scale(.35) rotate(-18deg)}to{transform:scale(1)}}
+    .booked-state h3{font-size:30px;margin:0 0 6px;letter-spacing:-.04em}.booked-state p{margin:0;color:var(--muted);font-weight:700}
+
+    .footer{padding:18px 30px 28px;text-align:center;color:#9896A7;font-size:11px;font-weight:700}.footer a{cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+    .toast{position:fixed;left:50%;bottom:28px;transform:translate(-50%,20px);background:#171723;color:white;padding:12px 16px;border-radius:13px;font-size:12px;font-weight:900;z-index:150;opacity:0;pointer-events:none;transition:.25s ease;box-shadow:0 12px 30px rgba(20,20,30,.2)}.toast.show{opacity:1;transform:translate(-50%,0)}
+
+    @media (max-width:1100px){
+      .landing{grid-template-columns:1fr;min-height:auto;padding-top:40px}.sample-stage{height:430px;transform:scale(.78);margin-top:-15px}.profile-card{grid-template-columns:1fr}.deck-layout{grid-template-columns:1fr}.sessions-panel{display:none}.sessions-mobile-btn{display:block}.deck-stage{height:550px}
+    }
+    @media (max-width:760px){
+      .topbar{height:72px;padding:0 18px}.brand{font-size:22px}.brand svg{width:30px}.nav-actions .ghost-btn{padding:9px 12px;font-size:12px}.screen{min-height:calc(100vh - 72px)}.landing{padding:34px 20px 60px}.sample-stage{display:none}h1{font-size:58px}.hero-sub{font-size:22px}.hero-micro{flex-wrap:wrap}.onboarding-wrap{padding:8px 14px 55px}.onboarding-head{align-items:start;flex-direction:column}.profile-card{padding:18px;border-radius:24px}.weekly-grid{grid-template-columns:70px repeat(5,1fr);gap:5px}.time-cell{height:32px}.choice-grid{grid-template-columns:1fr}.onboarding-actions{align-items:stretch;flex-direction:column}.validation{margin:0}.primary-btn{width:100%}.deck-screen{padding:4px 10px 28px}.deck-topline{padding:0 6px}.deck-title h2{font-size:32px}.deck-stage{height:525px}.study-card{height:490px;padding:23px 20px;border-radius:25px}.card-head{padding-right:93px}.avatar{width:70px;height:70px;font-size:22px}.person h3{font-size:26px}.person .bio{font-size:15px}.score-ring{width:82px;height:82px}.score-ring::after{width:64px;height:64px}.score-copy strong{font-size:20px}.why-row{font-size:11px;gap:8px}.divider{margin:17px 0}.match-modal{padding:27px 18px 24px;border-radius:28px}.match-modal h2{font-size:36px}.match-actions{flex-direction:column}.action-btn{width:100%}
+    }
+    @media (max-height:800px) and (min-width:900px){
+      .topbar{height:64px}.screen{min-height:calc(100vh - 64px)}.landing{padding-top:26px;padding-bottom:36px}.sample-stage{height:500px;transform:scale(.86)}
+      .onboarding-wrap{padding-top:0;padding-bottom:8px}.onboarding-head{margin:0 0 9px}.onboarding-head h2{font-size:40px}.onboarding-head p{font-size:14px}.demo-shortcut{padding:9px 12px}
+      .profile-card{padding:16px 20px;gap:16px}.section-block{padding-bottom:9px;margin-bottom:9px}.section-label{margin-bottom:7px}.name-input{padding:11px 14px}.chips{gap:6px}.chip{padding:7px 10px}.choice-grid{gap:7px}.choice-tile{min-height:48px;padding:9px 12px}.goal-row{gap:7px}.goal-pill{padding:9px 11px}.time-cell{height:27px}.onboarding-actions{margin-top:9px}.onboarding-actions .primary-btn.big{padding:14px 22px}.profile-card>div:last-child .section-block:last-child>div{padding:13px!important}.footer{padding:8px 30px 12px}
+      .deck-stage{height:500px}.study-card{height:465px;padding:28px}.sessions-panel{min-height:500px}.person h3{font-size:29px}.divider{margin:18px 0}.deck-title h2{font-size:36px}.why-row{padding:12px 14px}.deck-controls{margin-top:1px}.round-btn{width:58px;height:58px}.round-btn.study{width:68px;height:68px}.match-modal{transform:scale(.92)}
+    }
+    @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important;transition-duration:.001ms!important}.blob{display:none}}
+  </style>
+</head>
+<body>
+<div class="app">
+  <div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div>
+  <header class="topbar">
+    <div class="brand" aria-label="StudyMatch">
+      <svg viewBox="0 0 44 44" fill="none" aria-hidden="true">
+        <defs><linearGradient id="lg" x1="5" y1="5" x2="39" y2="40" gradientUnits="userSpaceOnUse"><stop stop-color="#FF6B6B"/><stop offset="1" stop-color="#7C5CFF"/></linearGradient></defs>
+        <path d="M8.8 12.5c0-2 1.9-3.4 3.8-2.9l8.1 2.3c.8.2 1.4 1 1.4 1.8v19.2c0 1.2-1.2 2-2.3 1.5l-8.9-3.6a3.3 3.3 0 0 1-2.1-3V12.5Z" fill="url(#lg)"/>
+        <path d="M35.2 12.5c0-2-1.9-3.4-3.8-2.9l-8.1 2.3c-.8.2-1.4 1-1.4 1.8v19.2c0 1.2 1.2 2 2.3 1.5l8.9-3.6a3.3 3.3 0 0 0 2.1-3V12.5Z" fill="url(#lg)" opacity=".82"/>
+        <path d="m34.5 4.8 1.1 3.1 3.1 1.1-3.1 1.1-1.1 3.1-1.1-3.1-3.1-1.1 3.1-1.1 1.1-3.1Z" fill="#FFB84D"/>
+      </svg>
+      <span class="brand-text">StudyMatch</span>
+    </div>
+    <div class="nav-actions">
+      <button class="ghost-btn sessions-mobile-btn" id="mobileSessionsBtn" type="button">My Sessions</button>
+      <button class="ghost-btn" id="topSessionsBtn" type="button">My Sessions <span id="topSessionCount">0</span></button>
+    </div>
+  </header>
+
+  <main>
+    <section class="screen active" id="landingScreen">
+      <div class="landing">
+        <div class="hero">
+          <div class="eyebrow"><i></i> built for students who mean it this time</div>
+          <h1>Stop studying <span class="gradient-text">alone.</span></h1>
+          <div class="hero-sub">Swipe. Match. Actually get it done.</div>
+          <p class="hero-copy">Find classmates who share your courses, your free time and your study style — then turn the match into a real session before your motivation disappears.</p>
+          <button class="primary-btn big" id="buildProfileBtn" type="button">Build my study profile →</button>
+          <div class="hero-micro"><span>⚡ <b>30-sec</b> setup</span><span>📚 Course-first matches</span><span>🗓️ Books the session</span></div>
+        </div>
+        <div class="sample-stage" aria-hidden="true">
+          <div class="sample-card">
+            <div class="sample-top"><div class="avatar small" style="--a:#FF8A72;--b:#FF6B9C">MS<span class="vibe">☕</span></div><strong>87%</strong></div>
+            <div class="mini-name">Maya S.</div><div class="mini-meta">Sophomore · Psychology</div>
+            <div class="sample-bio">“I bring snacks. You bring the notes.”</div>
+            <div class="mini-tags"><span>Psychology 101</span><span>Academic Writing</span></div>
+            <div class="sample-foot"><strong>☕ Café Studier</strong><span>↗</span></div>
+          </div>
+          <div class="sample-card">
+            <div class="sample-top"><div class="avatar small" style="--a:#38BDF8;--b:#5C75FF">JL<span class="vibe">🌙</span></div><strong>92%</strong></div>
+            <div class="mini-name">Jordan L.</div><div class="mini-meta">Junior · Computer Science</div>
+            <div class="sample-bio">“Peak productivity at 1:47 AM.”</div>
+            <div class="mini-tags"><span>Data Structures</span><span>Cybersecurity</span></div>
+            <div class="sample-foot"><strong>🌙 Night Owl</strong><span>↗</span></div>
+          </div>
+          <div class="sample-card">
+            <div class="sample-top"><div class="avatar small" style="--a:#7C5CFF;--b:#BA6CFF">AK<span class="vibe">💬</span></div><strong>95%</strong></div>
+            <div class="mini-name">Ava K.</div><div class="mini-meta">Freshman · Applied Math</div>
+            <div class="sample-bio">“Will explain recursion until one of us cries.”</div>
+            <div class="mini-tags"><span>Calculus I</span><span>Intro to Programming</span></div>
+            <div class="sample-foot"><strong>💬 Explain-it-out-loud</strong><span>↗</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="screen" id="onboardingScreen">
+      <div class="onboarding-wrap">
+        <div class="onboarding-head">
+          <div><h2>Your study DNA.</h2><p>Fast setup. Better matches. Fewer “we should totally study sometime” lies.</p></div>
+          <button class="demo-shortcut" id="fillDemoBtn" type="button">✨ Fill demo profile <kbd>F</kbd></button>
+        </div>
+        <div class="profile-card" id="profileCard">
+          <div>
+            <div class="section-block">
+              <div class="section-label"><span>Your name</span></div>
+              <input class="name-input" id="nameInput" autocomplete="off" placeholder="e.g. Boris" maxlength="24" />
+            </div>
+            <div class="section-block">
+              <div class="section-label"><span>Courses</span><span id="courseCount">0 selected</span></div>
+              <div class="chips" id="courseChips"></div>
+            </div>
+            <div class="section-block">
+              <div class="section-label"><span>Free time</span><span>Click or drag to paint</span></div>
+              <div class="weekly-grid" id="weeklyGrid"></div>
+            </div>
+          </div>
+          <div>
+            <div class="section-block">
+              <div class="section-label"><span>Study style</span></div>
+              <div class="choice-grid" id="styleGrid"></div>
+            </div>
+            <div class="section-block">
+              <div class="section-label"><span>Goal</span></div>
+              <div class="goal-row" id="goalRow"></div>
+            </div>
+            <div class="section-block" style="border:0;padding:0;margin:0">
+              <div style="border-radius:20px;background:linear-gradient(135deg,#181824,#2E2853);color:white;padding:19px;box-shadow:0 16px 30px rgba(30,27,57,.16)">
+                <div style="font-size:11px;text-transform:uppercase;letter-spacing:.12em;font-weight:900;color:#BDB9D9;margin-bottom:8px">Tiny promise</div>
+                <div style="font-size:20px;font-weight:900;letter-spacing:-.025em;line-height:1.25">We optimize for “actually studies with you,” not “has a suspiciously perfect profile.”</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="onboarding-actions"><div class="validation" id="validation"></div><button class="primary-btn big" id="startSwipingBtn" type="button">Start swiping →</button></div>
+      </div>
+    </section>
+
+    <section class="screen" id="deckScreen">
+      <div class="deck-screen">
+        <div class="deck-layout">
+          <div class="deck-main">
+            <div class="deck-topline">
+              <div class="deck-title"><h2>People worth opening the laptop for.</h2><p id="deckSubtitle">Best matches first — with just enough chaos to keep it interesting.</p></div>
+              <div class="progress-pill" id="progressPill">0 / 16 seen</div>
+            </div>
+            <div class="deck-stage" id="deckStage">
+              <div class="empty-deck" id="emptyDeck"><div><div class="emoji">🎉</div><h3>You've seen everyone in your courses.</h3><p>Your academic social battery can rest. Or reshuffle and pretend you didn’t pass on that 94% match.</p><button class="primary-btn" id="reshuffleBtn" type="button">Reshuffle the deck</button></div></div>
+            </div>
+            <div class="deck-controls" id="deckControls">
+              <button class="round-btn pass" id="passBtn" type="button" aria-label="Pass">✕</button>
+              <button class="round-btn study" id="studyBtn" type="button" aria-label="Study">✓</button>
+            </div>
+            <div class="key-hint">← pass &nbsp;&nbsp;·&nbsp;&nbsp; → study</div>
+          </div>
+          <aside class="sessions-panel" id="sessionsPanel">
+            <div class="panel-head"><h3>My Sessions</h3><div class="panel-count" id="panelCount">0</div></div>
+            <div class="session-list" id="sessionList"></div>
+          </aside>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">Made with questionable caffeine levels · <a id="resetDemo">Reset demo</a></footer>
+</div>
+
+<div class="match-overlay" id="matchOverlay" aria-hidden="true">
+  <canvas id="confetti"></canvas>
+  <div class="match-modal">
+    <div class="booked-state" id="bookedState"><div><div class="success-check">✓</div><h3>Session booked.</h3><p>Look at you, being academically responsible.</p></div></div>
+    <div class="match-kicker">Mutual study energy detected</div>
+    <div class="avatar-collision" id="avatarCollision"><div class="spark-burst">✨</div></div>
+    <h2>It's a Study Date! 📚</h2>
+    <p class="match-sub" id="matchSub">You both said “study.” Rare. Beautiful.</p>
+    <div class="session-preview" id="sessionPreview"></div>
+    <div class="match-actions"><button class="action-btn secondary" id="keepSwipingBtn" type="button">Keep swiping</button><button class="action-btn book" id="bookItBtn" type="button">Book it ✓</button></div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+(() => {
+  'use strict';
+
+  const COURSES = ['Intro to Programming','Calculus I','Cybersecurity Fundamentals','Data Structures','Macroeconomics','Psychology 101','Organic Chemistry','Linear Algebra','Networking','Academic Writing'];
+  const DAYS = ['Mon','Tue','Wed','Thu','Fri'];
+  const PARTS = ['Morning','Afternoon','Evening','Night'];
+  const STYLES = [
+    {id:'Silent Grinder',emoji:'🤫',label:'Silent Grinder'},
+    {id:'Explain-it-out-loud',emoji:'💬',label:'Explain-it-out-loud'},
+    {id:'Night Owl',emoji:'🌙',label:'Night Owl'},
+    {id:'Café Studier',emoji:'☕',label:'Café Studier'}
+  ];
+  const GOALS = ['Ace the exam','Just pass 😅','Understand it for real'];
+  const SPOTS = ['Library, 2nd floor','Hancock Center lounge','Student Center café','Quiet study room B'];
+  const COLORS = [
+    ['#FF866F','#FF6BAA'],['#38BDF8','#6C63FF'],['#7C5CFF','#C56CFF'],['#24C9A3','#38BDF8'],
+    ['#FFB34C','#FF6B6B'],['#B276FF','#6D79FF'],['#55C8FF','#3B76E9'],['#FF7A90','#9A6CFF']
+  ];
+  const VIBES = {'Silent Grinder':'🤫','Explain-it-out-loud':'💬','Night Owl':'🌙','Café Studier':'☕'};
+  const PART_TIMES = {Morning:['09:00','11:00','9:00–11:00 AM'],Afternoon:['14:00','16:00','2:00–4:00 PM'],Evening:['18:00','20:00','6:00–8:00 PM'],Night:['21:00','23:00','9:00–11:00 PM']};
+
+  const STUDENTS = [
+    {id:'ava',name:'Ava Kim',year:'Freshman',major:'Applied Mathematics',courses:['Calculus I','Intro to Programming','Linear Algebra'],free:['Mon-Evening','Tue-Evening','Wed-Night','Thu-Evening','Fri-Afternoon'],style:'Explain-it-out-loud',goal:'Understand it for real',bio:'Will explain recursion until one of us cries.'},
+    {id:'jordan',name:'Jordan Lee',year:'Junior',major:'Computer Science',courses:['Data Structures','Cybersecurity Fundamentals','Networking','Calculus I'],free:['Tue-Evening','Tue-Night','Wed-Night','Thu-Evening','Fri-Night'],style:'Night Owl',goal:'Ace the exam',bio:'Night owl. Peak productivity at 1:47 AM.'},
+    {id:'noah',name:'Noah Patel',year:'Sophomore',major:'Cybersecurity',courses:['Cybersecurity Fundamentals','Networking','Data Structures'],free:['Mon-Night','Tue-Evening','Wed-Evening','Thu-Night','Fri-Evening'],style:'Night Owl',goal:'Understand it for real',bio:'Firewall strong. Attention span negotiable.'},
+    {id:'sofia',name:'Sofia Martinez',year:'Sophomore',major:'Economics',courses:['Macroeconomics','Calculus I','Academic Writing'],free:['Mon-Afternoon','Tue-Evening','Wed-Afternoon','Thu-Evening','Fri-Morning'],style:'Café Studier',goal:'Ace the exam',bio:'I bring snacks. You bring the notes.'},
+    {id:'ethan',name:'Ethan Brooks',year:'Senior',major:'Computer Science',courses:['Data Structures','Networking','Linear Algebra'],free:['Mon-Evening','Tue-Night','Wed-Evening','Thu-Night','Fri-Afternoon'],style:'Silent Grinder',goal:'Ace the exam',bio:'Writes pseudocode before breakfast. Somehow okay.'},
+    {id:'maya',name:'Maya Singh',year:'Sophomore',major:'Psychology',courses:['Psychology 101','Academic Writing','Macroeconomics'],free:['Mon-Morning','Tue-Afternoon','Wed-Evening','Thu-Afternoon','Fri-Morning'],style:'Café Studier',goal:'Understand it for real',bio:'Has read the textbook. Once. Partially.'},
+    {id:'liam',name:'Liam Chen',year:'Freshman',major:'Computer Science',courses:['Intro to Programming','Calculus I','Academic Writing'],free:['Mon-Evening','Tue-Evening','Wed-Afternoon','Thu-Evening','Fri-Night'],style:'Explain-it-out-loud',goal:'Just pass 😅',bio:'Debugging technique: stare harder, then snack.'},
+    {id:'chloe',name:'Chloe Johnson',year:'Junior',major:'Chemistry',courses:['Organic Chemistry','Calculus I','Psychology 101'],free:['Mon-Afternoon','Tue-Evening','Wed-Night','Thu-Afternoon','Fri-Evening'],style:'Silent Grinder',goal:'Ace the exam',bio:'Knows functional groups. Forgets where keys are.'},
+    {id:'amir',name:'Amir Haddad',year:'Senior',major:'Information Technology',courses:['Networking','Cybersecurity Fundamentals','Data Structures'],free:['Mon-Night','Tue-Night','Wed-Evening','Thu-Evening','Fri-Night'],style:'Night Owl',goal:'Ace the exam',bio:'Can subnet. Cannot remember to eat lunch.'},
+    {id:'grace',name:'Grace O’Connor',year:'Freshman',major:'Writing & Rhetoric',courses:['Academic Writing','Psychology 101','Macroeconomics'],free:['Mon-Morning','Tue-Morning','Wed-Afternoon','Thu-Afternoon','Fri-Morning'],style:'Café Studier',goal:'Understand it for real',bio:'Color-codes notes like it’s a competitive sport.'},
+    {id:'mateo',name:'Mateo Rivera',year:'Junior',major:'Mathematics',courses:['Linear Algebra','Calculus I','Data Structures'],free:['Mon-Evening','Tue-Evening','Wed-Night','Thu-Evening','Fri-Afternoon'],style:'Silent Grinder',goal:'Ace the exam',bio:'Says “easy proof” and then uses three whiteboards.'},
+    {id:'emma',name:'Emma Wilson',year:'Senior',major:'Economics',courses:['Macroeconomics','Academic Writing','Calculus I'],free:['Mon-Afternoon','Tue-Evening','Wed-Afternoon','Thu-Morning','Fri-Evening'],style:'Café Studier',goal:'Just pass 😅',bio:'Brings a calculator and emotional support coffee.'},
+    {id:'zara',name:'Zara Ahmed',year:'Sophomore',major:'Data Science',courses:['Data Structures','Linear Algebra','Calculus I','Intro to Programming'],free:['Mon-Night','Tue-Evening','Wed-Evening','Thu-Night','Fri-Afternoon'],style:'Night Owl',goal:'Understand it for real',bio:'One more problem set. Famous last words.'},
+    {id:'ben',name:'Ben Carter',year:'Freshman',major:'Business',courses:['Macroeconomics','Academic Writing','Psychology 101'],free:['Mon-Morning','Tue-Afternoon','Wed-Afternoon','Thu-Evening','Fri-Morning'],style:'Explain-it-out-loud',goal:'Just pass 😅',bio:'Will ask the question everyone else was scared to ask.'},
+    {id:'priya',name:'Priya Nair',year:'Junior',major:'Biochemistry',courses:['Organic Chemistry','Calculus I','Psychology 101'],free:['Mon-Evening','Tue-Night','Wed-Afternoon','Thu-Evening','Fri-Afternoon'],style:'Silent Grinder',goal:'Ace the exam',bio:'Study break means reorganizing the study plan.'},
+    {id:'leo',name:'Leo Nguyen',year:'Senior',major:'Cybersecurity',courses:['Cybersecurity Fundamentals','Networking','Data Structures','Academic Writing'],free:['Mon-Night','Tue-Evening','Wed-Night','Thu-Evening','Fri-Night'],style:'Night Owl',goal:'Understand it for real',bio:'Threat model: the exam. Mitigation: snacks + you.'}
+  ];
+
+  const state = {
+    profile:{name:'',courses:[],free:[],style:'',goal:''},
+    deck:[],seen:0,rightSwipes:0,matchedIds:[],sessions:[],pendingMatch:null,pendingSession:null,painting:false,paintValue:true
+  };
+
+  const $ = s => document.querySelector(s);
+  const $$ = s => Array.from(document.querySelectorAll(s));
+  const screens = {landing:$('#landingScreen'),onboarding:$('#onboardingScreen'),deck:$('#deckScreen')};
+
+  function safeLoad(){
+    try{
+      const p = JSON.parse(localStorage.getItem('studymatch.profile') || 'null');
+      const m = JSON.parse(localStorage.getItem('studymatch.matches') || '[]');
+      const s = JSON.parse(localStorage.getItem('studymatch.sessions') || '[]');
+      if(p && typeof p === 'object') state.profile = {...state.profile,...p};
+      if(Array.isArray(m)) state.matchedIds = m;
+      if(Array.isArray(s)) state.sessions = s;
+    }catch(e){ /* offline demo should still work */ }
+  }
+  function safeSave(){
+    try{
+      localStorage.setItem('studymatch.profile',JSON.stringify(state.profile));
+      localStorage.setItem('studymatch.matches',JSON.stringify(state.matchedIds));
+      localStorage.setItem('studymatch.sessions',JSON.stringify(state.sessions));
+    }catch(e){ /* storage can be unavailable on file:// in strict browsers */ }
+  }
+
+  function showScreen(which){
+    Object.values(screens).forEach(s=>s.classList.remove('active'));
+    screens[which].classList.add('active');
+    window.scrollTo({top:0,behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'});
+  }
+
+  function initials(name){return name.split(/\s+/).map(x=>x[0]).join('').slice(0,2).toUpperCase()}
+  function colorFor(id){let sum=0;for(const c of id)sum+=c.charCodeAt(0);return COLORS[sum%COLORS.length]}
+  function avatarHTML(person,size=''){
+    const c=colorFor(person.id || person.name || 'user');
+    const emoji=VIBES[person.style] || '📚';
+    return `<div class="avatar ${size}" style="--a:${c[0]};--b:${c[1]}">${initials(person.name)}<span class="vibe">${emoji}</span></div>`;
+  }
+  function styleLabel(style){const s=STYLES.find(x=>x.id===style);return s?`${s.emoji} ${s.label}`:style}
+  function escapeHTML(str){return String(str).replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]))}
+
+  function buildOnboarding(){
+    $('#courseChips').innerHTML = COURSES.map(c=>`<button type="button" class="chip" data-course="${escapeHTML(c)}">${escapeHTML(c)}</button>`).join('');
+    $('#styleGrid').innerHTML = STYLES.map(s=>`<button type="button" class="choice-tile" data-style="${escapeHTML(s.id)}"><span>${s.emoji}</span><span>${escapeHTML(s.label)}</span></button>`).join('');
+    $('#goalRow').innerHTML = GOALS.map(g=>`<button type="button" class="goal-pill" data-goal="${escapeHTML(g)}">${escapeHTML(g)}</button>`).join('');
+    let html='<div></div>'+DAYS.map(d=>`<div class="grid-head">${d}</div>`).join('');
+    PARTS.forEach(p=>{html+=`<div class="grid-row-label">${p}</div>`+DAYS.map(d=>`<div class="time-cell" role="button" tabindex="0" data-slot="${d}-${p}" aria-label="${d} ${p}"></div>`).join('')});
+    $('#weeklyGrid').innerHTML=html;
+
+    $('#courseChips').addEventListener('click',e=>{
+      const b=e.target.closest('[data-course]'); if(!b)return;
+      const c=b.dataset.course, idx=state.profile.courses.indexOf(c);
+      idx>=0?state.profile.courses.splice(idx,1):state.profile.courses.push(c);
+      syncProfileUI();
+    });
+    $('#styleGrid').addEventListener('click',e=>{const b=e.target.closest('[data-style]');if(!b)return;state.profile.style=b.dataset.style;syncProfileUI()});
+    $('#goalRow').addEventListener('click',e=>{const b=e.target.closest('[data-goal]');if(!b)return;state.profile.goal=b.dataset.goal;syncProfileUI()});
+    $('#nameInput').addEventListener('input',e=>{state.profile.name=e.target.value.trimStart();safeSave()});
+
+    const grid=$('#weeklyGrid');
+    grid.addEventListener('pointerdown',e=>{
+      const cell=e.target.closest('.time-cell'); if(!cell)return;
+      e.preventDefault();state.painting=true;state.paintValue=!cell.classList.contains('selected');setTime(cell.dataset.slot,state.paintValue);syncProfileUI();
+      try{grid.setPointerCapture(e.pointerId)}catch(_){ }
+    });
+    grid.addEventListener('pointermove',e=>{if(!state.painting)return;const el=document.elementFromPoint(e.clientX,e.clientY);const cell=el&&el.closest?el.closest('.time-cell'):null;if(cell&&grid.contains(cell)){setTime(cell.dataset.slot,state.paintValue);syncProfileUI()}});
+    const stop=()=>state.painting=false;grid.addEventListener('pointerup',stop);grid.addEventListener('pointercancel',stop);window.addEventListener('pointerup',stop);
+    grid.addEventListener('keydown',e=>{const cell=e.target.closest('.time-cell');if(!cell)return;if(e.key===' '||e.key==='Enter'){e.preventDefault();setTime(cell.dataset.slot,!cell.classList.contains('selected'));syncProfileUI()}});
+    syncProfileUI();
+  }
+
+  function setTime(slot,on){const i=state.profile.free.indexOf(slot);if(on&&i<0)state.profile.free.push(slot);if(!on&&i>=0)state.profile.free.splice(i,1)}
+  function syncProfileUI(){
+    $('#nameInput').value=state.profile.name || '';
+    $$('#courseChips .chip').forEach(b=>b.classList.toggle('selected',state.profile.courses.includes(b.dataset.course)));
+    $('#courseCount').textContent=`${state.profile.courses.length} selected`;
+    $$('.time-cell').forEach(c=>c.classList.toggle('selected',state.profile.free.includes(c.dataset.slot)));
+    $$('#styleGrid .choice-tile').forEach(b=>b.classList.toggle('selected',state.profile.style===b.dataset.style));
+    $$('#goalRow .goal-pill').forEach(b=>b.classList.toggle('selected',state.profile.goal===b.dataset.goal));
+    safeSave();
+  }
+
+  function fillDemo(){
+    state.profile={
+      name:'Boris',
+      courses:['Calculus I','Cybersecurity Fundamentals','Data Structures','Networking'],
+      free:['Mon-Night','Tue-Evening','Tue-Night','Wed-Night','Thu-Evening','Fri-Night'],
+      style:'Night Owl',goal:'Ace the exam'
+    };
+    syncProfileUI();
+    $('#profileCard').classList.remove('flash');void $('#profileCard').offsetWidth;$('#profileCard').classList.add('flash');
+    toast('Demo profile loaded ✨');
+  }
+
+  function styleCompatibility(a,b){
+    if(a===b)return 1;
+    const pair=[a,b].sort().join('|');
+    const compat={
+      'Night Owl|Silent Grinder':.72,
+      'Café Studier|Explain-it-out-loud':.72,
+      'Café Studier|Silent Grinder':.42,
+      'Explain-it-out-loud|Night Owl':.45,
+      'Explain-it-out-loud|Silent Grinder':.25,
+      'Café Studier|Night Owl':.38
+    };
+    return compat[pair] || .3;
+  }
+  function intersection(a,b){const s=new Set(b);return a.filter(x=>s.has(x))}
+  function unionSize(a,b){return new Set([...a,...b]).size}
+  function scoreStudent(st){
+    const shared=intersection(state.profile.courses,st.courses);
+    const free=intersection(state.profile.free,st.free);
+    const courseJ=shared.length/Math.max(1,unionSize(state.profile.courses,st.courses));
+    const timeJ=free.length/Math.max(1,unionSize(state.profile.free,st.free));
+    const style=styleCompatibility(state.profile.style,st.style);
+    const goal=state.profile.goal===st.goal?1:0;
+    const raw=.45*courseJ+.35*timeJ+.15*style+.05*goal;
+    const score=Math.max(40,Math.min(99,Math.round(40+raw*59)));
+    return {...st,score,shared,overlap:free};
+  }
+  function reasonFor(st){
+    const bits=[];
+    if(st.shared.length) bits.push(`📚 ${st.shared.length} shared course${st.shared.length>1?'s':''}`); else bits.push('📚 Same academic orbit');
+    if(st.overlap.length){const [d,p]=st.overlap[0].split('-');bits.push(`🕓 Both free ${d} ${p.toLowerCase()}`)} else bits.push('🕓 Schedules are close');
+    if(state.profile.style===st.style) bits.push(`${VIBES[st.style]} Both ${st.style.toLowerCase()}s`);
+    else if(styleCompatibility(state.profile.style,st.style)>=.7) bits.push('⚡ Compatible study styles');
+    else if(state.profile.goal===st.goal) bits.push('🎯 Same goal');
+    else bits.push('🤝 Good course overlap');
+    return bits.slice(0,3).join(' · ');
+  }
+  function buildDeck(){
+    state.seen=0;state.rightSwipes=0;
+    state.deck=STUDENTS.map(scoreStudent).map(x=>({...x,jitter:(Math.random()-.5)*7})).sort((a,b)=>(b.score+b.jitter)-(a.score+a.jitter));
+    renderDeck();
+  }
+
+  function cardHTML(st,depth){
+    const allCourses=st.courses.map(c=>`<span class="course-tag ${st.shared.includes(c)?'shared':''}">${escapeHTML(c)}</span>`).join('');
+    return `<article class="study-card" data-depth="${depth}" data-id="${st.id}" aria-label="${escapeHTML(st.name)}, ${st.score} percent match">
+      <div class="stamp pass-stamp">PASS</div><div class="stamp study-stamp">STUDY</div>
+      <div class="card-head">${avatarHTML(st)}<div class="person"><h3>${escapeHTML(st.name)}</h3><div class="meta">${st.year} · ${escapeHTML(st.major)}</div><div class="bio">“${escapeHTML(st.bio)}”</div></div>
+      <div class="score-ring" style="--score:0"><div class="score-copy"><strong>0%</strong><span>match</span></div></div></div>
+      <div class="divider"></div><div class="shared-label">Courses ${st.shared.length?'· shared ones glow':''}</div><div class="course-row">${allCourses}</div>
+      <div class="style-badge">${styleLabel(st.style)}</div>
+      <div class="why-row"><span class="why-label">Why you match</span><span class="why-text">${escapeHTML(reasonFor(st))}</span></div>
+    </article>`;
+  }
+
+  function renderDeck(){
+    const stage=$('#deckStage');
+    stage.querySelectorAll('.study-card').forEach(c=>c.remove());
+    const empty=$('#emptyDeck');
+    if(!state.deck.length){empty.classList.add('active');$('#deckControls').style.visibility='hidden'} else {
+      empty.classList.remove('active');$('#deckControls').style.visibility='visible';
+      state.deck.slice(0,3).forEach((st,i)=>stage.insertAdjacentHTML('beforeend',cardHTML(st,i)));
+      attachTopCard();
+      animateScore(stage.querySelector('.study-card[data-depth="0"]'),state.deck[0].score);
+    }
+    $('#progressPill').textContent=`${state.seen} / ${STUDENTS.length} seen`;
+    $('#deckSubtitle').textContent=state.profile.name?`Top matches for ${state.profile.name} — with just enough chaos to keep it interesting.`:'Best matches first — with just enough chaos to keep it interesting.';
+  }
+
+  function animateScore(card,target){
+    if(!card)return;const ring=card.querySelector('.score-ring'),txt=card.querySelector('.score-copy strong');
+    const reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if(reduce){ring.style.setProperty('--score',target);txt.textContent=target+'%';return}
+    const start=performance.now(),dur=700;
+    const tick=now=>{const p=Math.min(1,(now-start)/dur),e=1-Math.pow(1-p,3),v=Math.round(target*e);ring.style.setProperty('--score',v);txt.textContent=v+'%';if(p<1)requestAnimationFrame(tick)};requestAnimationFrame(tick);
+  }
+
+  function attachTopCard(){
+    const card=$('.study-card[data-depth="0"]');if(!card)return;
+    let startX=0,startY=0,dx=0,drag=false,pid=null;
+    const passStamp=card.querySelector('.pass-stamp'),studyStamp=card.querySelector('.study-stamp');
+    card.addEventListener('pointerdown',e=>{if(e.button!==undefined&&e.button!==0)return;drag=true;pid=e.pointerId;startX=e.clientX;startY=e.clientY;card.classList.add('dragging');try{card.setPointerCapture(pid)}catch(_){}});
+    card.addEventListener('pointermove',e=>{if(!drag)return;dx=e.clientX-startX;const dy=(e.clientY-startY)*.18;card.style.transform=`translate(${dx}px,${dy}px) rotate(${dx/20}deg)`;const op=Math.min(1,Math.abs(dx)/110);studyStamp.style.opacity=dx>20?op:0;passStamp.style.opacity=dx<-20?op:0});
+    const end=()=>{if(!drag)return;drag=false;card.classList.remove('dragging');if(Math.abs(dx)>125)swipe(dx>0?'right':'left',card,dx);else{card.style.transform='';studyStamp.style.opacity=0;passStamp.style.opacity=0}dx=0};
+    card.addEventListener('pointerup',end);card.addEventListener('pointercancel',end);
+  }
+
+  function swipe(dir,card=null,initialDx=0){
+    if(!state.deck.length)return;
+    const top=state.deck[0];card=card||$('.study-card[data-depth="0"]');if(!card)return;
+    if(dir==='right')state.rightSwipes++;
+    const guaranteed=dir==='right' && state.rightSwipes===2;
+    const mutual=dir==='right' && (guaranteed || (state.rightSwipes>2 && top.score>=75 && Math.random()<.70));
+    const w=Math.max(window.innerWidth,1000),sign=dir==='right'?1:-1;
+    card.style.transition='transform .48s cubic-bezier(.16,.84,.3,1.14),opacity .42s ease';
+    card.style.transform=`translate(${sign*(w*.72)}px,${initialDx?24:-8}px) rotate(${sign*24}deg)`;card.style.opacity='0';
+    if(dir==='right'&&!state.matchedIds.includes(top.id))state.matchedIds.push(top.id);
+    safeSave();
+    setTimeout(()=>{
+      state.deck.shift();state.seen++;renderDeck();
+      if(mutual) showMatch(top);
+    },360);
+  }
+
+  function nextDateForDay(day){
+    const map={Mon:1,Tue:2,Wed:3,Thu:4,Fri:5},now=new Date(),target=map[day],cur=now.getDay();let delta=(target-cur+7)%7;if(delta===0)delta=7;const d=new Date(now);d.setDate(now.getDate()+delta);d.setHours(12,0,0,0);return d;
+  }
+  function generatedSession(st){
+    let slot=st.overlap[0] || state.profile.free[0] || st.free[0] || 'Tue-Evening';
+    const [day,part]=slot.split('-');
+    const course=st.shared[0] || state.profile.courses[0] || st.courses[0] || 'Study session';
+    const times=PART_TIMES[part]||PART_TIMES.Evening;
+    const date=nextDateForDay(day);
+    const idx=(state.sessions.length+state.seen)%SPOTS.length;
+    return {id:`s-${Date.now()}-${st.id}`,studentId:st.id,studentName:st.name,course,spot:SPOTS[idx],day,part,timeLabel:times[2],start:combineDateTime(date,times[0]),end:combineDateTime(date,times[1])};
+  }
+  function combineDateTime(date,hm){const d=new Date(date);const [h,m]=hm.split(':').map(Number);d.setHours(h,m,0,0);return d.toISOString()}
+  function prettyDate(iso){return new Intl.DateTimeFormat(undefined,{weekday:'short',month:'short',day:'numeric'}).format(new Date(iso))}
+
+  function showMatch(st){
+    state.pendingMatch=st;state.pendingSession=generatedSession(st);
+    const overlay=$('#matchOverlay');$('#bookedState').classList.remove('active');
+    $('#matchSub').textContent=`You + ${st.name.split(' ')[0]} both said “study.” Rare. Beautiful.`;
+    const user={id:'user-'+(state.profile.name||'you'),name:state.profile.name||'You',style:state.profile.style};
+    $('#avatarCollision').innerHTML=`<div class="match-avatar left">${avatarHTML(user,'large')}</div><div class="spark-burst">✨</div><div class="match-avatar right">${avatarHTML(st,'large')}</div>`;
+    const s=state.pendingSession;
+    $('#sessionPreview').innerHTML=`<div>📍 ${escapeHTML(s.spot)}<small>Suggested spot</small></div><div>🗓 ${escapeHTML(s.day)} · ${escapeHTML(s.timeLabel)}<small>${escapeHTML(prettyDate(s.start))}</small></div><div>📖 ${escapeHTML(s.course)}<small>Shared course</small></div>`;
+    overlay.classList.add('active');overlay.setAttribute('aria-hidden','false');
+    burstConfetti();
+  }
+  function closeMatch(){const o=$('#matchOverlay');o.classList.remove('active');o.setAttribute('aria-hidden','true');stopConfetti();state.pendingMatch=null;state.pendingSession=null}
+
+  function bookPending(){
+    if(!state.pendingSession)return;
+    if(!state.sessions.some(s=>s.id===state.pendingSession.id))state.sessions.unshift(state.pendingSession);
+    safeSave();renderSessions();$('#bookedState').classList.add('active');burstConfetti(true);toast('Added to My Sessions ✓');
+    setTimeout(()=>closeMatch(),1100);
+  }
+
+  function renderSessions(){
+    const list=$('#sessionList');$('#panelCount').textContent=state.sessions.length;$('#topSessionCount').textContent=state.sessions.length;
+    if(!state.sessions.length){list.innerHTML=`<div class="session-empty"><span class="e">🗓️</span>No sessions yet.<br>Your future productive self is waiting.</div>`;return}
+    list.innerHTML=state.sessions.map(s=>{
+      const d=new Date(s.start),days=Math.max(0,Math.ceil((d-new Date())/86400000));const label=days===0?'today':days===1?'tomorrow':`in ${days} days`;
+      return `<div class="session-card"><div class="session-top"><div><h4>${escapeHTML(s.course)}</h4></div><span class="countdown">${label}</span></div><div class="session-meta">📍 ${escapeHTML(s.spot)}<br>🗓 ${escapeHTML(prettyDate(s.start))} · ${escapeHTML(s.timeLabel)}</div><div class="session-person"><span class="mini-dot">${initials(s.studentName)}</span>with ${escapeHTML(s.studentName)}</div><button class="ics-btn" type="button" data-ics="${escapeHTML(s.id)}">↓ Download .ics</button></div>`
+    }).join('');
+  }
+
+  function pad(n){return String(n).padStart(2,'0')}
+  function icsDate(iso){const d=new Date(iso);return `${d.getUTCFullYear()}${pad(d.getUTCMonth()+1)}${pad(d.getUTCDate())}T${pad(d.getUTCHours())}${pad(d.getUTCMinutes())}${pad(d.getUTCSeconds())}Z`}
+  function icsEscape(s){return String(s).replace(/\\/g,'\\\\').replace(/;/g,'\\;').replace(/,/g,'\\,').replace(/\n/g,'\\n')}
+  function downloadICS(id){
+    const s=state.sessions.find(x=>x.id===id);if(!s)return;
+    const uid=`${s.id}@studymatch.local`,stamp=icsDate(new Date().toISOString());
+    const ics=['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//StudyMatch//Offline Demo//EN','CALSCALE:GREGORIAN','METHOD:PUBLISH','BEGIN:VEVENT',`UID:${uid}`,`DTSTAMP:${stamp}`,`DTSTART:${icsDate(s.start)}`,`DTEND:${icsDate(s.end)}`,`SUMMARY:${icsEscape('StudyMatch: '+s.course+' with '+s.studentName)}`,`LOCATION:${icsEscape(s.spot)}`,`DESCRIPTION:${icsEscape('Study session booked with StudyMatch.')}`,'END:VEVENT','END:VCALENDAR'].join('\r\n');
+    const blob=new Blob([ics],{type:'text/calendar;charset=utf-8'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=`StudyMatch-${s.course.replace(/[^a-z0-9]+/gi,'-')}.ics`;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),500);toast('Calendar file downloaded 🗓️');
+  }
+
+  let confettiAnim=0,confettiPieces=[];
+  function burstConfetti(extra=false){
+    const canvas=$('#confetti'),ctx=canvas.getContext('2d');if(!ctx)return;
+    canvas.width=window.innerWidth*devicePixelRatio;canvas.height=window.innerHeight*devicePixelRatio;canvas.style.width=window.innerWidth+'px';canvas.style.height=window.innerHeight+'px';ctx.scale(devicePixelRatio,devicePixelRatio);
+    const colors=['#FF6B6B','#7C5CFF','#38BDF8','#FFD166','#18B77B'];
+    const count=window.matchMedia('(prefers-reduced-motion: reduce)').matches?0:(extra?150:210);
+    confettiPieces=Array.from({length:count},()=>({x:window.innerWidth/2+(Math.random()-.5)*100,y:window.innerHeight*.38+(Math.random()-.5)*40,vx:(Math.random()-.5)*14,vy:-Math.random()*10-4,g:.22+Math.random()*.13,r:Math.random()*Math.PI,w:5+Math.random()*6,h:8+Math.random()*9,c:colors[(Math.random()*colors.length)|0],life:95+Math.random()*45,spin:(Math.random()-.5)*.25}));
+    cancelAnimationFrame(confettiAnim);
+    const draw=()=>{ctx.clearRect(0,0,window.innerWidth,window.innerHeight);confettiPieces.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.vy+=p.g;p.r+=p.spin;p.life--;ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.r);ctx.fillStyle=p.c;ctx.fillRect(-p.w/2,-p.h/2,p.w,p.h);ctx.restore()});confettiPieces=confettiPieces.filter(p=>p.life>0&&p.y<window.innerHeight+30);if(confettiPieces.length)confettiAnim=requestAnimationFrame(draw)};draw();
+  }
+  function stopConfetti(){cancelAnimationFrame(confettiAnim);const c=$('#confetti'),ctx=c.getContext('2d');if(ctx)ctx.clearRect(0,0,c.width,c.height);confettiPieces=[]}
+
+  let toastTimer=0;
+  function toast(msg){const t=$('#toast');t.textContent=msg;t.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove('show'),1800)}
+  function validateProfile(){const p=state.profile;if(!p.name.trim())return 'Add your name first.';if(!p.courses.length)return 'Pick at least one course.';if(!p.free.length)return 'Paint at least one free-time slot.';if(!p.style)return 'Pick your study style.';if(!p.goal)return 'Pick your goal.';return ''}
+  function startSwiping(){const err=validateProfile();$('#validation').textContent=err;if(err)return;state.profile.name=state.profile.name.trim();safeSave();buildDeck();renderSessions();showScreen('deck')}
+
+  function openSessions(){
+    if(!screens.deck.classList.contains('active')){if(validateProfile()){toast('Book a match first to start My Sessions.');return}buildDeck();showScreen('deck')}
+    const panel=$('#sessionsPanel');if(window.innerWidth<=1100){panel.style.display='block';panel.style.position='fixed';panel.style.zIndex='80';panel.style.inset='84px 14px 14px';panel.style.overflow='auto';panel.addEventListener('click',e=>{if(e.target===panel)panel.style.display='none'},{once:true});toast('My Sessions opened')}
+    else panel.scrollIntoView({behavior:'smooth',block:'start'});
+  }
+
+  $('#buildProfileBtn').addEventListener('click',()=>showScreen('onboarding'));
+  $('#fillDemoBtn').addEventListener('click',fillDemo);
+  $('#startSwipingBtn').addEventListener('click',startSwiping);
+  $('#passBtn').addEventListener('click',()=>swipe('left'));
+  $('#studyBtn').addEventListener('click',()=>swipe('right'));
+  $('#keepSwipingBtn').addEventListener('click',closeMatch);
+  $('#bookItBtn').addEventListener('click',bookPending);
+  $('#reshuffleBtn').addEventListener('click',()=>{buildDeck();toast('Fresh deck, same deadlines.')});
+  $('#topSessionsBtn').addEventListener('click',openSessions);$('#mobileSessionsBtn').addEventListener('click',openSessions);
+  $('#sessionList').addEventListener('click',e=>{const b=e.target.closest('[data-ics]');if(b)downloadICS(b.dataset.ics)});
+  $('#resetDemo').addEventListener('click',()=>{
+    try{localStorage.removeItem('studymatch.profile');localStorage.removeItem('studymatch.matches');localStorage.removeItem('studymatch.sessions')}catch(_){ }
+    state.profile={name:'',courses:[],free:[],style:'',goal:''};state.matchedIds=[];state.sessions=[];state.deck=[];state.seen=0;state.rightSwipes=0;syncProfileUI();renderSessions();showScreen('landing');toast('Demo reset ✓');
+  });
+  window.addEventListener('keydown',e=>{
+    const typing=/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName);
+    if((e.key==='f'||e.key==='F')&&!typing&&screens.onboarding.classList.contains('active')){e.preventDefault();fillDemo();return}
+    if(screens.deck.classList.contains('active')&&!$('#matchOverlay').classList.contains('active')&&!typing){if(e.key==='ArrowLeft'){e.preventDefault();swipe('left')}if(e.key==='ArrowRight'){e.preventDefault();swipe('right')}}
+    if(e.key==='Escape'&&$('#matchOverlay').classList.contains('active'))closeMatch();
+  });
+  window.addEventListener('resize',()=>{if($('#matchOverlay').classList.contains('active'))stopConfetti()});
+
+  safeLoad();buildOnboarding();renderSessions();
+})();
+</script>
+</body>
+</html>
